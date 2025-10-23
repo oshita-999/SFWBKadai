@@ -1,5 +1,10 @@
 package com.example.app.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +24,8 @@ public class ItemController {
 	
 	//サービスクラスのオブジェクト
 	private final ItemService service;
+	//セッションオブジェクト
+	private final HttpSession session;
 	
 	//localhost:8080/にリクエストがあったときに
 	//itemList()が呼び出される
@@ -44,17 +51,21 @@ public class ItemController {
 		//サービスオブジェクトのメソッド呼び出し
 		//商品番号から商品を返す
 		Item item = service.getItemById(id);
+		int unit = 0;
+		int subTotal = 0;
 		
 		//商品がnullの時は/(index)にリダイレクトされる
 		if(item == null) {
 			return "redirect:/";
 		}
+		
+		
 		//modelに商品を保存
 		model.addAttribute("item", item);
-		//modelに個数0を保存
-		model.addAttribute("unit", 0);
-		//modelに金額0を保存
-		model.addAttribute("subtotal", 0);
+		//modelに個数を保存
+		model.addAttribute("unit", unit);
+		//modelに金額を保存
+		model.addAttribute("subtotal", subTotal);
 		//item.htmlを返す
 		return "item";
 	}
@@ -70,6 +81,8 @@ public class ItemController {
 			//一時的データ保存場所
 			Model model) {
 		
+		List<Integer> subTotals = new ArrayList<>();
+		
 		//サービスオブジェクトのメソッド呼び出し
 		//商品番号から商品を返す
 		Item item = service.getItemById(id);
@@ -82,6 +95,14 @@ public class ItemController {
 		model.addAttribute("unit", unit);
 		//modelに金額を保存
 		model.addAttribute("subtotal", subtotal);
+		
+		//sessionに商品を保存
+		session.setAttribute("item", item);
+		//sessionに個数を保存
+		session.setAttribute("unit", unit);
+	    //に金額を保存
+		session.setAttribute("subtotal", subtotal);
+		
 		//item.htmlを返す
 		return "item";
 	}
