@@ -7,19 +7,16 @@
 </head>
 <body>
 <h1>商品の決済</h1>
-<form action="" method="post">
+
+<div th:if="${#lists.isEmpty(cart)}">
+  カートは空です。
+</div>
+
+<form action="" method="post" th:unless="${#lists.isEmpty(cart)}" th:inline="text">
   <table>
-    <tr>
-      <td>和風レターセット</td>
-      <td>[[${subtotal[1]}]]円</td>
-    </tr>
-    <tr>
-      <td>毛筆ペン</td>
-      <td>[[${subtotal[2]}]]円</td>
-    </tr>
-    <tr>
-      <td>簡単万年筆</td>
-      <td>[[${subtotal[3]}]]円</td>
+    <tr th:each="line : ${cart}">
+      <td th:text="${line.name}">商品名</td>
+      <td>[[${line.subtotal}]]円</td>
     </tr>
     <tr>
       <td>合計</td>
