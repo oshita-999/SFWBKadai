@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.app.domain.CartLine;
 import com.example.app.domain.Item;
 import com.example.app.service.ItemService;
 
@@ -71,7 +72,7 @@ public class ItemController {
 	}
 	
 	//フォームからlocalhost:8080/itemにリクエストがあったときに
-	//calcTotal()が呼び出される
+	//calcSubtotal()が呼び出される
 	@PostMapping("/item")
 	public String calcSubtotal(
 			//商品番号
@@ -81,12 +82,10 @@ public class ItemController {
 			//一時的データ保存場所
 			Model model) {
 		
-		List<Integer> subTotals = new ArrayList<>();
-		
 		//サービスオブジェクトのメソッド呼び出し
 		//商品番号から商品を返す
 		Item item = service.getItemById(id);
-		//金額の計算
+		//金額の計算（単価*数量）
 		int subtotal = item.getPrice() * unit;
 		
 		//modelに商品を保存
@@ -96,12 +95,36 @@ public class ItemController {
 		//modelに金額を保存
 		model.addAttribute("subtotal", subtotal);
 		
-		//sessionに商品を保存
-		session.setAttribute("item", item);
-		//sessionに個数を保存
-		session.setAttribute("unit", unit);
-	    //に金額を保存
-		session.setAttribute("subtotal", subtotal);
+		//現在のカート情報をセッションから取得
+		List<CartLine> cart = (List<CartLine>) session.getAttribute("cart");
+		//cartができていない場合新規作成
+		if(cart == null) {
+			cart = new ArrayList<>();
+			//セッションに保存
+			session.setAttribute("cart", cart);
+		}
+		
+		//同じ商品が既に存在しているか調べる
+		CartLine existing = null;
+		//cartの各行でループ
+	    for (CartLine line : cart) {
+	    	//入力された商品番号と同じ番号の商品が既に存在している場合
+	    	//その行の値を代入してループを終了
+	        if (line.getId() == id) {
+	            existing = line;
+	            break;
+	        }
+	    }
+	    
+	    //入力された商品番号と同じ番号の商品が既に存在している場合
+	    if (existing != null) {
+	    	//数量を加算する
+	        existing.setUnit(existing.getUnit() + unit);
+	    //入力された商品番号と同じ番号の商品がなかった場合    
+	    } else {
+	    	//カートに商品情報を追加する
+	        cart.add(new CartLine(id, item.getName(), item.getPrice(), unit));
+	    }
 		
 		//item.htmlを返す
 		return "item";
